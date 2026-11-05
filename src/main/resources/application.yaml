@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: plex
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak-internal.thepineslab.net/realms/cp-se-academy
+  datasource:
+    url: jdbc:postgresql://localhost:5432/plexmovies
+    username: admin
+    password: admin123
+  liquibase:
+   change-log: classpath:/db/changelog/db.changelog-master.xml
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          order_inserts: true
+          order_updates: true
+          batch_size: 100
+        cache:
+          use_query_cache: false
+          use_second_level_cache: false
+  batch:
+    job:
+      enabled: false
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+external:
+  omdb:
+    base-url: "https://www.omdbapi.com"
+    api-key: "${OMDB_API_KEY}"
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000
+server:
+  port: 8080
+

@@ -1,0 +1,600 @@
+openapi: 3.1.0
+info:
+  title: Movies API
+  description: A resource oriented API for managing movies
+  version: 3.1.0
+servers:
+  - url: http://localhost:8080
+
+tags:
+  - name: Movies
+    description: Operations available for movies
+
+paths:
+  /api/movies:
+    get:
+      tags:
+        - Movies
+      security:
+        - KeycloakAuth:
+            - "ROLE_user"
+      summary: List and search movies
+      parameters:
+        - $ref: "#/components/parameters/QueryParametersFilter"
+        - $ref: "#/components/parameters/QueryParametersPage"
+        - $ref: "#/components/parameters/QueryParametersSize"
+        - $ref: "#/components/parameters/QueryParametersSort"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MoviePage"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+    post:
+      tags:
+        - Movies
+      security:
+        - KeycloakAuth:
+            - "ROLE_admin"
+      operationId: addMovie
+      summary: adds new movie to the library
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MovieCreateRequest"
+      responses:
+        "201":
+          description: "Created"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/movies/{id}:
+    get:
+      tags:
+        - Movies
+      security:
+        - KeycloakAuth:
+            - "ROLE_user"
+      operationId: getMovieById
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      summary: Returns an object of type movie
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    patch:
+      tags:
+        - Movies
+      security:
+        - KeycloakAuth:
+            - "ROLE_admin"
+      operationId: updatePartialMovie
+      summary: update some args of the movie
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoviePartialUpdateRequest"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    put:
+      tags:
+        - Movies
+      security:
+        - KeycloakAuth:
+            - "ROLE_admin"
+      operationId: updateMovie
+      summary: update the whole movie
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMovieRequest"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+    delete:
+      tags:
+        - Movies
+      security:
+        - KeycloakAuth:
+            - "ROLE_admin"
+      operationId: deleteMovie
+      summary: Delete a movie
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204":
+          description: "No Content"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+  /api/movies/{id}/enrich:
+
+    put:
+      tags:
+        - Movies
+      security:
+        - KeycloakAuth:
+            - "ROLE_admin"
+      operationId: enrich
+      summary: calls external API to enrich movie fields information
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MovieResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
+components:
+  schemas:
+    Movie:
+      type: object
+      required: [ title, description, rating, releaseDate, director,writers, stars, subtitles, duration, imdbId, year, genre, audio ]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        rating:
+          type: integer
+        releaseDate:
+          type: string
+          format: date
+        writers:
+          type: array
+          items:
+            type: string
+        director:
+          type: array
+          items:
+            type: string
+        stars:
+          type: array
+          items:
+            type: string
+        duration:
+          type: string
+          format: time
+        imdbId:
+          type: string
+        year:
+          type: string
+        genre:
+          type: string
+        audio:
+          type: string
+        subtitles:
+          type: string
+
+
+    MovieCreateRequest:
+      type: object
+      required: [ title, description, rating, releaseDate, director, writers, stars, duration, imdbId, year, genre, audio ,subtitles ]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          pattern: '.*\S.*'
+        description:
+          type: string
+          minLength: 1
+          pattern: '.*\S.*'
+        rating:
+          type: integer
+        releaseDate:
+          type: string
+          format: date
+        director:
+          type: array
+          items:
+            type: string
+        writers:
+          type: array
+          items:
+            type: string
+        stars:
+          type: array
+          items:
+            type: string
+        duration:
+          type: string
+          format: time
+        imdbId:
+          type: string
+        year:
+          type: string
+        genre:
+          type: string
+        audio:
+          type: string
+        subtitles:
+          type: string
+
+    MoviePage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: "#/components/schemas/Movie"
+        empty:
+          description: "true if the page is empty"
+          type: boolean
+        first:
+          description: "true if the page is the first"
+          type: boolean
+        last:
+          description: "true if the page is the last"
+          type: boolean
+        number:
+          description: "page number"
+          type: integer
+        numberOfElements:
+          description: "number of elements on the current page"
+          type: integer
+        pageable:
+          $ref: "#/components/schemas/Pageable"
+        size:
+          description: "total page size"
+          type: integer
+        sort:
+          $ref: "#/components/schemas/Sort"
+        totalElements:
+          description: "total page elements on the current page"
+          type: integer
+        totalPages:
+          description: "total page count"
+          type: integer
+
+    Pageable:
+      type: object
+      offset:
+        description: "Page offset from the start"
+        type: integer
+      pageNumber:
+        description: "page number"
+        type: integer
+      pageSize:
+        description: "number of elements the page can hold"
+        type: integer
+      paged:
+        type: boolean
+      sort:
+        $ref: "#/components/schemas/Sort"
+      unpaged:
+        type: boolean
+
+    Sort:
+      type: object
+      empty:
+        type: boolean
+      sorted:
+        type: boolean
+      unsorted:
+        type: boolean
+
+    MoviePartialUpdateRequest:
+      type: object
+      nullable: true
+      properties:
+        title:
+          type: string
+          minLength: 1
+          pattern: '.*\S.*'
+        description:
+          type: string
+          minLength: 1
+          pattern: '.*\S.*'
+        rating:
+          type: integer
+          minimum: 0
+          maximum: 100
+        releaseDate:
+          type: string
+          format: date
+        directors:
+          type: array
+          items:
+            type: string
+        writers:
+          type: array
+          items:
+            type: string
+        stars:
+          type: array
+          items:
+            type: string
+        duration:
+          type: string
+          format: time
+        imdbId:
+          type: string
+        year:
+          type: string
+        genre:
+          type: string
+        audio:
+          type: string
+        subtitles:
+          type: string
+        awards:
+          type: array
+          items:
+            type: string
+    UpdateMovieRequest:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Movie"
+
+    ProblemDetail:
+      type: object
+      required: [ title,type,status,detail ]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+
+    SuccessDetails:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+
+    MovieResponse:
+      type: object
+      description: Movie payload returned
+      allOf:
+        - $ref: "#/components/schemas/Movie"
+
+  parameters:
+
+    QueryParametersFilter:
+      in: query
+      name: filter
+      required: false
+      description: Search for title or movie director
+      schema:
+        type: string
+
+    QueryParametersPage:
+      in: query
+      name: page
+      required: false
+      schema:
+        type: integer
+        default: 0
+        minimum: 0
+      description: Change pages
+
+    QueryParametersSize:
+      in: query
+      name: size
+      required: false
+      schema:
+        type: integer
+        default: 10
+        minimum: 5
+      description: Filter by page size
+
+    QueryParametersSort:
+      in: query
+      name: sort
+      required: false
+      schema:
+        type: string
+        default: id,ASC
+      description: Sorting
+    Id:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: integer
+        format: int64
+      description: Numeric id to get the movie
+
+  responses:
+
+    UpdateInformationResponse:
+      description: Movie information was updated.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SuccessDetails"
+
+    PatchInformationResponse:
+      description: Movie was patched.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SuccessDetails"
+
+    DeleteMovieSuccessResponse:
+      description: Movie was deleted successful.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SuccessDetails"
+
+    SuccessCreatingMovieResponse:
+      description: Movie was created.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SuccessDetails"
+
+    BadRequest:
+      description: Bad Request - Validation failure or malformed payload.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    Unauthorized:
+      description: Unauthorized request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    Forbidden:
+      description: Forbidden request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    NotFound:
+      description: Your request was not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    Conflict:
+      description: Resource already in the database
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+
+
+  securitySchemes:
+    KeycloakAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description:
+        "KeyCloak with bearer jwt token
+        roles are extracted from the token field realm_access
+        where list of roles is extracted further .
+        Role user or admin is given in the token as one of the values
+        and extracted and in class RolesConverter where
+        a prefix of ROLE_ is added to all roles
+        
+        ROLE_user - basic user permissions with ability to get resources
+        ROLE_admin - admin permissions with abilities to create, delete, update and enrich resources
+        "
+
+

@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: plex
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://keycloak-internal.thepineslab.net/realms/cp-se-academy
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+external:
+  omdb:
+    base-url: "https://www.omdbapi.com"
+    api-key: "test-api-key"
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000
